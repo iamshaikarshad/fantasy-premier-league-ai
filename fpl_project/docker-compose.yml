@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: fpl_optimizer
+      POSTGRES_USER: fpl_user
+      POSTGRES_PASSWORD: fpl_pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  web:
+    build: .
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://fpl_user:fpl_pass@db:5432/fpl_optimizer
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      DEBUG: "True"
+    depends_on:
+      - db
+      - redis
+
+  celery_worker:
+    build: .
+    command: celery -A fpl_project worker -l info
+    volumes:
+      - .:/app
+    environment:
+      DATABASE_URL: postgresql://fpl_user:fpl_pass@db:5432/fpl_optimizer
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      DEBUG: "True"
+    depends_on:
+      - db
+      - redis
+      - web
+
+  celery_beat:
+    build: .
+    command: celery -A fpl_project beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    volumes:
+      - .:/app
+    environment:
+      DATABASE_URL: postgresql://fpl_user:fpl_pass@db:5432/fpl_optimizer
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      DEBUG: "True"
+    depends_on:
+      - db
+      - redis
+      - web
+
+volumes:
+  postgres_data:
+  redis_data:

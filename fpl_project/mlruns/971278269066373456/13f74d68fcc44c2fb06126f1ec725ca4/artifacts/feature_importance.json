@@ -1,0 +1,20 @@
+{
+  "price": 2,
+  "form": 8,
+  "points_per_game": 0,
+  "selected_by_percent": 1,
+  "points_last3_avg": 29,
+  "points_last5_avg": 1,
+  "points_last10_avg": 1,
+  "minutes_last3_avg": 1,
+  "goals_last5": 1,
+  "assists_last5": 2,
+  "clean_sheets_last5": 2,
+  "influence": 4,
+  "creativity": 0,
+  "threat": 2,
+  "ict_index": 4,
+  "expected_goals": 0,
+  "expected_assists": 4,
+  "minutes": 0
+}
